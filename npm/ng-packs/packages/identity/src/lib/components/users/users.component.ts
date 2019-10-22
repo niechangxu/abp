@@ -1,6 +1,6 @@
 import { ABP } from '@abp/ng.core';
 import { ConfirmationService, Toaster } from '@abp/ng.theme.shared';
-import { Component, TemplateRef, TrackByFunction, ViewChild } from '@angular/core';
+import { Component, TemplateRef, TrackByFunction, ViewChild, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
@@ -12,15 +12,16 @@ import {
   GetUserById,
   GetUserRoles,
   GetUsers,
-  UpdateUser
+  UpdateUser,
+  GetRoles,
 } from '../../actions/identity.actions';
 import { Identity } from '../../models/identity';
 import { IdentityState } from '../../states/identity.state';
 @Component({
   selector: 'abp-users',
-  templateUrl: './users.component.html'
+  templateUrl: './users.component.html',
 })
-export class UsersComponent {
+export class UsersComponent implements OnInit {
   @Select(IdentityState.getUsers)
   data$: Observable<Identity.UserItem[]>;
 
@@ -42,9 +43,7 @@ export class UsersComponent {
 
   providerKey: string;
 
-  pageQuery: ABP.PageQueryParams = {
-    sorting: 'userName'
-  };
+  pageQuery: ABP.PageQueryParams = {};
 
   isModalVisible: boolean;
 
@@ -52,7 +51,9 @@ export class UsersComponent {
 
   modalBusy = false;
 
-  sortOrder = 'asc';
+  sortOrder = '';
+
+  sortKey = '';
 
   trackByFn: TrackByFunction<AbstractControl> = (index, item) => Object.keys(item)[0] || index;
 
@@ -62,32 +63,41 @@ export class UsersComponent {
 
   constructor(private confirmationService: ConfirmationService, private fb: FormBuilder, private store: Store) {}
 
+  ngOnInit() {
+    this.get();
+  }
+
   onSearch(value) {
     this.pageQuery.filter = value;
     this.get();
   }
 
   buildForm() {
-    this.roles = this.store.selectSnapshot(IdentityState.getRoles);
-    this.form = this.fb.group({
-      userName: [this.selected.userName || '', [Validators.required, Validators.maxLength(256)]],
-      email: [this.selected.email || '', [Validators.required, Validators.email, Validators.maxLength(256)]],
-      name: [this.selected.name || '', [Validators.maxLength(64)]],
-      surname: [this.selected.surname || '', [Validators.maxLength(64)]],
-      phoneNumber: [this.selected.phoneNumber || '', [Validators.maxLength(16)]],
-      lockoutEnabled: [this.selected.twoFactorEnabled || (this.selected.id ? false : true)],
-      twoFactorEnabled: [this.selected.twoFactorEnabled || (this.selected.id ? false : true)],
-      roleNames: this.fb.array(
-        this.roles.map(role =>
-          this.fb.group({
-            [role.name]: [!!snq(() => this.selectedUserRoles.find(userRole => userRole.id === role.id))]
-          })
-        )
-      )
+    this.store.dispatch(new GetRoles()).subscribe(() => {
+      this.roles = this.store.selectSnapshot(IdentityState.getRoles);
+      this.form = this.fb.group({
+        userName: [this.selected.userName || '', [Validators.required, Validators.maxLength(256)]],
+        email: [this.selected.email || '', [Validators.required, Validators.email, Validators.maxLength(256)]],
+        name: [this.selected.name || '', [Validators.maxLength(64)]],
+        surname: [this.selected.surname || '', [Validators.maxLength(64)]],
+        phoneNumber: [this.selected.phoneNumber || '', [Validators.maxLength(16)]],
+        lockoutEnabled: [this.selected.twoFactorEnabled || (this.selected.id ? false : true)],
+        twoFactorEnabled: [this.selected.twoFactorEnabled || (this.selected.id ? false : true)],
+        roleNames: this.fb.array(
+          this.roles.map(role =>
+            this.fb.group({
+              [role.name]: [!!snq(() => this.selectedUserRoles.find(userRole => userRole.id === role.id))],
+            }),
+          ),
+        ),
+      });
+
+      if (!this.selected.userName) {
+        this.form.addControl('password', new FormControl('', [Validators.required, Validators.maxLength(32)]));
+      } else {
+        this.form.addControl('password', new FormControl('', [Validators.maxLength(32)]));
+      }
     });
-    if (!this.selected.userName) {
-      this.form.addControl('password', new FormControl('', [Validators.required, Validators.maxLength(32)]));
-    }
   }
 
   openModal() {
@@ -107,7 +117,7 @@ export class UsersComponent {
       .pipe(
         switchMap(() => this.store.dispatch(new GetUserRoles(id))),
         pluck('IdentityState'),
-        take(1)
+        take(1),
       )
       .subscribe((state: Identity.State) => {
         this.selected = state.selectedUser;
@@ -123,7 +133,7 @@ export class UsersComponent {
     const { roleNames } = this.form.value;
     const mappedRoleNames = snq(
       () => roleNames.filter(role => !!role[Object.keys(role)[0]]).map(role => Object.keys(role)[0]),
-      []
+      [],
     );
 
     this.store
@@ -132,12 +142,12 @@ export class UsersComponent {
           ? new UpdateUser({
               ...this.form.value,
               id: this.selected.id,
-              roleNames: mappedRoleNames
+              roleNames: mappedRoleNames,
             })
           : new CreateUser({
               ...this.form.value,
-              roleNames: mappedRoleNames
-            })
+              roleNames: mappedRoleNames,
+            }),
       )
       .subscribe(() => {
         this.modalBusy = false;
@@ -148,7 +158,7 @@ export class UsersComponent {
   delete(id: string, userName: string) {
     this.confirmationService
       .warn('AbpIdentity::UserDeletionConfirmationMessage', 'AbpIdentity::AreYouSure', {
-        messageLocalizationParams: [userName]
+        messageLocalizationParams: [userName],
       })
       .subscribe((status: Toaster.Status) => {
         if (status === Toaster.Status.confirm) {
@@ -170,9 +180,5 @@ export class UsersComponent {
       .dispatch(new GetUsers(this.pageQuery))
       .pipe(finalize(() => (this.loading = false)))
       .subscribe();
-  }
-
-  changeSortOrder() {
-    this.sortOrder = this.sortOrder.toLowerCase() === 'asc' ? 'desc' : 'asc';
   }
 }

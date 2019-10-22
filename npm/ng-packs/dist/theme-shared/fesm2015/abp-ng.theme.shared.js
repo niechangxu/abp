@@ -1,22 +1,21 @@
 import { ConfigState, ChangePassword, StartLoader, StopLoader, GetProfile, UpdateProfile, ProfileState, RestOccurError, LazyLoadService, CoreModule } from '@abp/ng.core';
-import { Component, Input, Injectable, ɵɵdefineInjectable, ɵɵinject, EventEmitter, Output, ViewChild, ElementRef, ChangeDetectorRef, Renderer2, ContentChild, ViewChildren, ApplicationRef, ComponentFactoryResolver, RendererFactory2, Injector, INJECTOR, APP_INITIALIZER, NgModule } from '@angular/core';
+import { Component, EventEmitter, Renderer2, Input, Output, ViewChild, Injectable, ɵɵdefineInjectable, ɵɵinject, ElementRef, ChangeDetectorRef, ContentChild, ViewChildren, NgZone, ApplicationRef, ComponentFactoryResolver, RendererFactory2, Injector, INJECTOR, APP_INITIALIZER, NgModule } from '@angular/core';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { ToastModule } from 'primeng/toast';
 import { Subject, ReplaySubject, BehaviorSubject, fromEvent, interval, timer, Observable, forkJoin } from 'rxjs';
-import { finalize, takeUntil, debounceTime, filter, take, withLatestFrom } from 'rxjs/operators';
 import { Router, NavigationStart, NavigationEnd, NavigationError } from '@angular/router';
 import { Store, ofActionSuccessful, Actions, Select } from '@ngxs/store';
 import { Validators, FormBuilder } from '@angular/forms';
-import { comparePasswords, takeUntilDestroy } from '@ngx-validate/core';
+import { comparePasswords, takeUntilDestroy, NgxValidateCoreModule } from '@ngx-validate/core';
 import snq from 'snq';
+import { finalize, takeUntil, debounceTime, filter, withLatestFrom, take } from 'rxjs/operators';
+import { animation, style, animate, trigger, transition, useAnimation, keyframes, state } from '@angular/animations';
 import { __decorate, __metadata } from 'tslib';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Navigate, RouterState } from '@ngxs/router-plugin';
-import { trigger, state, style, transition, animate } from '@angular/animations';
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class BreadcrumbComponent {
     /**
@@ -66,21 +65,7 @@ class BreadcrumbComponent {
 BreadcrumbComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-breadcrumb',
-                template: `
-    <ol *ngIf="show" class="breadcrumb">
-      <li class="breadcrumb-item">
-        <a routerLink="/"><i class="fa fa-home"></i> </a>
-      </li>
-      <li
-        *ngFor="let segment of segments; let last = last"
-        class="breadcrumb-item"
-        [class.active]="last"
-        aria-current="page"
-      >
-        {{ segment | abpLocalization }}
-      </li>
-    </ol>
-  `
+                template: "<ol *ngIf=\"show\" class=\"breadcrumb\">\n  <li class=\"breadcrumb-item\">\n    <a routerLink=\"/\"><i class=\"fa fa-home\"></i> </a>\n  </li>\n  <li\n    *ngFor=\"let segment of segments; let last = last\"\n    class=\"breadcrumb-item\"\n    [class.active]=\"last\"\n    aria-current=\"page\"\n  >\n    {{ segment | abpLocalization }}\n  </li>\n</ol>\n"
             }] }
 ];
 /** @nocollapse */
@@ -107,57 +92,124 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ButtonComponent {
-    constructor() {
+    /**
+     * @param {?} renderer
+     */
+    constructor(renderer) {
+        this.renderer = renderer;
         this.buttonClass = 'btn btn-primary';
-        this.type = 'button';
         this.loading = false;
         this.disabled = false;
+        // tslint:disable-next-line: no-output-native
+        this.click = new EventEmitter();
+        // tslint:disable-next-line: no-output-native
+        this.focus = new EventEmitter();
+        // tslint:disable-next-line: no-output-native
+        this.blur = new EventEmitter();
+        /**
+         * @deprecated Use buttonType instead. To be deleted in v1
+         */
+        this.type = 'button';
     }
     /**
      * @return {?}
      */
     get icon() {
-        return `${this.loading ? 'fa fa-pulse fa-spinner' : this.iconClass || 'd-none'}`;
+        return `${this.loading ? 'fa fa-spinner fa-spin' : this.iconClass || 'd-none'}`;
+    }
+    /**
+     * @return {?}
+     */
+    ngOnInit() {
+        if (this.attributes) {
+            Object.keys(this.attributes).forEach((/**
+             * @param {?} key
+             * @return {?}
+             */
+            key => {
+                this.renderer.setAttribute(this.buttonRef.nativeElement, key, this.attributes[key]);
+            }));
+        }
     }
 }
 ButtonComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-button',
+                // tslint:disable-next-line: component-max-inline-declarations
                 template: `
-    <button [attr.type]="type" [ngClass]="buttonClass" [disabled]="loading || disabled">
+    <button
+      #button
+      [attr.type]="buttonType || type"
+      [ngClass]="buttonClass"
+      [disabled]="loading || disabled"
+      (click)="click.emit($event)"
+      (focus)="focus.emit($event)"
+      (blur)="blur.emit($event)"
+    >
       <i [ngClass]="icon" class="mr-1"></i><ng-content></ng-content>
     </button>
   `
             }] }
 ];
+/** @nocollapse */
+ButtonComponent.ctorParameters = () => [
+    { type: Renderer2 }
+];
 ButtonComponent.propDecorators = {
     buttonClass: [{ type: Input }],
-    type: [{ type: Input }],
+    buttonType: [{ type: Input }],
     iconClass: [{ type: Input }],
     loading: [{ type: Input }],
-    disabled: [{ type: Input }]
+    disabled: [{ type: Input }],
+    attributes: [{ type: Input }],
+    click: [{ type: Output }],
+    focus: [{ type: Output }],
+    blur: [{ type: Output }],
+    buttonRef: [{ type: ViewChild, args: ['button', { static: true },] }],
+    type: [{ type: Input }]
 };
 if (false) {
     /** @type {?} */
     ButtonComponent.prototype.buttonClass;
     /** @type {?} */
-    ButtonComponent.prototype.type;
+    ButtonComponent.prototype.buttonType;
     /** @type {?} */
     ButtonComponent.prototype.iconClass;
     /** @type {?} */
     ButtonComponent.prototype.loading;
     /** @type {?} */
     ButtonComponent.prototype.disabled;
+    /** @type {?} */
+    ButtonComponent.prototype.attributes;
+    /** @type {?} */
+    ButtonComponent.prototype.click;
+    /** @type {?} */
+    ButtonComponent.prototype.focus;
+    /** @type {?} */
+    ButtonComponent.prototype.blur;
+    /** @type {?} */
+    ButtonComponent.prototype.buttonRef;
+    /**
+     * @deprecated Use buttonType instead. To be deleted in v1
+     * @type {?}
+     */
+    ButtonComponent.prototype.type;
+    /**
+     * @type {?}
+     * @private
+     */
+    ButtonComponent.prototype.renderer;
 }
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
+ * @abstract
  * @template T
  */
 class AbstractToaster {
@@ -245,7 +297,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ToasterService extends AbstractToaster {
     /**
@@ -267,9 +319,11 @@ ToasterService.decorators = [
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { minLength, required } = Validators;
+/** @type {?} */
+const PASSWORD_FIELDS = ['newPassword', 'repeatNewPassword'];
 class ChangePasswordComponent {
     /**
      * @param {?} fb
@@ -282,6 +336,21 @@ class ChangePasswordComponent {
         this.toasterService = toasterService;
         this.visibleChange = new EventEmitter();
         this.modalBusy = false;
+        this.mapErrorsFn = (/**
+         * @param {?} errors
+         * @param {?} groupErrors
+         * @param {?} control
+         * @return {?}
+         */
+        (errors, groupErrors, control) => {
+            if (PASSWORD_FIELDS.indexOf(control.name) < 0)
+                return errors;
+            return errors.concat(groupErrors.filter((/**
+             * @param {?} __0
+             * @return {?}
+             */
+            ({ key }) => key === 'passwordMismatch')));
+        });
     }
     /**
      * @return {?}
@@ -306,7 +375,7 @@ class ChangePasswordComponent {
             newPassword: ['', required],
             repeatNewPassword: ['', required],
         }, {
-            validators: [comparePasswords(['newPassword', 'repeatNewPassword'])],
+            validators: [comparePasswords(PASSWORD_FIELDS)],
         });
     }
     /**
@@ -373,7 +442,7 @@ class ChangePasswordComponent {
 ChangePasswordComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-change-password',
-                template: "<abp-modal [(visible)]=\"visible\" [busy]=\"modalBusy\">\n  <ng-template #abpHeader>\n    <h4>{{ 'AbpIdentity::ChangePassword' | abpLocalization }}</h4>\n  </ng-template>\n  <ng-template #abpBody>\n    <form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\">\n      <div class=\"form-group\">\n        <label for=\"current-password\">{{ 'AbpIdentity::DisplayName:CurrentPassword' | abpLocalization }}</label\n        ><span> * </span\n        ><input type=\"password\" id=\"current-password\" class=\"form-control\" formControlName=\"password\" autofocus />\n      </div>\n      <div class=\"form-group\">\n        <label for=\"new-password\">{{ 'AbpIdentity::DisplayName:NewPassword' | abpLocalization }}</label\n        ><span> * </span><input type=\"password\" id=\"new-password\" class=\"form-control\" formControlName=\"newPassword\" />\n      </div>\n      <div class=\"form-group\" [class.is-invalid]=\"form.errors?.passwordMismatch\">\n        <label for=\"confirm-new-password\">{{ 'AbpIdentity::DisplayName:NewPasswordConfirm' | abpLocalization }}</label\n        ><span> * </span\n        ><input type=\"password\" id=\"confirm-new-password\" class=\"form-control\" formControlName=\"repeatNewPassword\" />\n        <div *ngIf=\"form.errors?.passwordMismatch\" class=\"invalid-feedback\">\n          {{ 'AbpIdentity::Identity.PasswordConfirmationFailed' | abpLocalization }}\n        </div>\n      </div>\n    </form>\n  </ng-template>\n  <ng-template #abpFooter>\n    <button type=\"button\" class=\"btn btn-secondary color-white\" #abpClose>\n      {{ 'AbpIdentity::Cancel' | abpLocalization }}\n    </button>\n    <abp-button iconClass=\"fa fa-check\" buttonClass=\"btn btn-primary color-white\" (click)=\"onSubmit()\">{{ 'AbpIdentity::Save' | abpLocalization }}</abp-button>\n  </ng-template>\n</abp-modal>\n"
+                template: "<abp-modal [(visible)]=\"visible\" [busy]=\"modalBusy\">\n  <ng-template #abpHeader>\n    <h4>{{ 'AbpIdentity::ChangePassword' | abpLocalization }}</h4>\n  </ng-template>\n  <ng-template #abpBody>\n    <form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\" [mapErrorsFn]=\"mapErrorsFn\">\n      <div class=\"form-group\">\n        <label for=\"current-password\">{{ 'AbpIdentity::DisplayName:CurrentPassword' | abpLocalization }}</label\n        ><span> * </span\n        ><input type=\"password\" id=\"current-password\" class=\"form-control\" formControlName=\"password\" autofocus />\n      </div>\n      <div class=\"form-group\">\n        <label for=\"new-password\">{{ 'AbpIdentity::DisplayName:NewPassword' | abpLocalization }}</label\n        ><span> * </span><input type=\"password\" id=\"new-password\" class=\"form-control\" formControlName=\"newPassword\" />\n      </div>\n      <div class=\"form-group\">\n        <label for=\"confirm-new-password\">{{ 'AbpIdentity::DisplayName:NewPasswordConfirm' | abpLocalization }}</label\n        ><span> * </span\n        ><input type=\"password\" id=\"confirm-new-password\" class=\"form-control\" formControlName=\"repeatNewPassword\" />\n      </div>\n    </form>\n  </ng-template>\n  <ng-template #abpFooter>\n    <button type=\"button\" class=\"btn btn-secondary color-white\" #abpClose>\n      {{ 'AbpIdentity::Cancel' | abpLocalization }}\n    </button>\n    <abp-button iconClass=\"fa fa-check\" buttonClass=\"btn btn-primary color-white\" (click)=\"onSubmit()\">{{\n      'AbpIdentity::Save' | abpLocalization\n    }}</abp-button>\n  </ng-template>\n</abp-modal>\n"
             }] }
 ];
 /** @nocollapse */
@@ -401,6 +470,8 @@ if (false) {
     ChangePasswordComponent.prototype.form;
     /** @type {?} */
     ChangePasswordComponent.prototype.modalBusy;
+    /** @type {?} */
+    ChangePasswordComponent.prototype.mapErrorsFn;
     /**
      * @type {?}
      * @private
@@ -420,7 +491,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @param {?} count
@@ -445,7 +516,7 @@ const chartJsLoaded$ = new ReplaySubject(1);
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ChartComponent {
     /**
@@ -458,6 +529,7 @@ class ChartComponent {
         this.options = {};
         this.plugins = [];
         this.responsive = true;
+        // tslint:disable-next-line: no-output-on-prefix
         this.onDataSelect = new EventEmitter();
         this.initialized = new BehaviorSubject(this);
         this.onCanvasClick = (/**
@@ -467,11 +539,15 @@ class ChartComponent {
         event => {
             if (this.chart) {
                 /** @type {?} */
-                let element = this.chart.getElementAtEvent(event);
+                const element = this.chart.getElementAtEvent(event);
                 /** @type {?} */
-                let dataset = this.chart.getDatasetAtEvent(event);
+                const dataset = this.chart.getDatasetAtEvent(event);
                 if (element && element[0] && dataset) {
-                    this.onDataSelect.emit({ originalEvent: event, element: element[0], dataset: dataset });
+                    this.onDataSelect.emit({
+                        originalEvent: event,
+                        element: element[0],
+                        dataset
+                    });
                 }
             }
         });
@@ -480,7 +556,7 @@ class ChartComponent {
          */
         () => {
             /** @type {?} */
-            let opts = this.options || {};
+            const opts = this.options || {};
             opts.responsive = this.responsive;
             // allows chart to resize in responsive mode
             if (opts.responsive && (this.height || this.width)) {
@@ -490,7 +566,7 @@ class ChartComponent {
                 type: this.type,
                 data: this.data,
                 options: this.options,
-                plugins: this.plugins,
+                plugins: this.plugins
             });
             this.cdRef.detectChanges();
         });
@@ -556,6 +632,7 @@ class ChartComponent {
          */
         () => {
             try {
+                // tslint:disable-next-line: no-unused-expression
                 Chart;
             }
             catch (error) {
@@ -648,7 +725,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ConfirmationService extends AbstractToaster {
     /**
@@ -723,7 +800,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ConfirmationComponent {
     /**
@@ -746,6 +823,7 @@ class ConfirmationComponent {
 ConfirmationComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-confirmation',
+                // tslint:disable-next-line: component-max-inline-declarations
                 template: `
     <p-toast
       position="center"
@@ -765,11 +843,18 @@ ConfirmationComponent.decorators = [
         </div>
 
         <div class="abp-confirm-footer justify-content-center">
-          <button *ngIf="!message.hideCancelBtn" type="button" class="btn btn-sm btn-primary" (click)="close(reject)">
+          <button
+            *ngIf="!message.hideCancelBtn"
+            id="cancel"
+            type="button"
+            class="btn btn-sm btn-primary"
+            (click)="close(reject)"
+          >
             {{ message.cancelCopy || 'AbpIdentity::Cancel' | abpLocalization }}
           </button>
           <button
             *ngIf="!message.hideYesBtn"
+            id="confirm"
             type="button"
             class="btn btn-sm btn-primary"
             (click)="close(confirm)"
@@ -803,7 +888,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ErrorComponent {
     constructor() {
@@ -820,30 +905,7 @@ class ErrorComponent {
 ErrorComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-error',
-                template: `
-    <div class="error">
-      <button id="abp-close-button mr-2" type="button" class="close" (click)="destroy()">
-        <span aria-hidden="true">&times;</span>
-      </button>
-      <div class="row centered">
-        <div class="col-md-12">
-          <div class="error-template">
-            <h1>
-              {{ title | abpLocalization }}
-            </h1>
-            <div class="error-details">
-              {{ details | abpLocalization }}
-            </div>
-            <div class="error-actions">
-              <a (click)="destroy()" routerLink="/" class="btn btn-primary btn-md mt-2"
-                ><span class="glyphicon glyphicon-home"></span> {{ '::Menu:Home' | abpLocalization }}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
+                template: "<div class=\"error\">\n  <button id=\"abp-close-button mr-3\" type=\"button\" class=\"close\" (click)=\"destroy()\">\n    <span aria-hidden=\"true\">&times;</span>\n  </button>\n  <div class=\"row centered\">\n    <div class=\"col-md-12\">\n      <div class=\"error-template\">\n        <h1>\n          {{ title | abpLocalization }}\n        </h1>\n        <div class=\"error-details\">\n          {{ details | abpLocalization }}\n        </div>\n        <div class=\"error-actions\">\n          <a (click)=\"destroy()\" routerLink=\"/\" class=\"btn btn-primary btn-md mt-2\"\n            ><span class=\"glyphicon glyphicon-home\"></span>\n            {{ { key: '::Menu:Home', defaultValue: 'Home' } | abpLocalization }}\n          </a>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n",
                 styles: [".error{position:fixed;top:0;background-color:#fff;width:100vw;height:100vh;z-index:999999}.centered{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)}"]
             }] }
 ];
@@ -862,7 +924,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class LoaderBarComponent {
     /**
@@ -877,12 +939,12 @@ class LoaderBarComponent {
         this.containerClass = 'abp-loader-bar';
         this.color = '#77b6ff';
         this.isLoading = false;
+        this.progressLevel = 0;
         this.filter = (/**
          * @param {?} action
          * @return {?}
          */
         (action) => action.payload.url.indexOf('openid-configuration') < 0);
-        this.progressLevel = 0;
         actions
             .pipe(ofActionSuccessful(StartLoader, StopLoader), filter(this.filter), takeUntilDestroy(this))
             .subscribe((/**
@@ -1006,13 +1068,13 @@ if (false) {
     /** @type {?} */
     LoaderBarComponent.prototype.isLoading;
     /** @type {?} */
-    LoaderBarComponent.prototype.filter;
-    /** @type {?} */
     LoaderBarComponent.prototype.progressLevel;
     /** @type {?} */
     LoaderBarComponent.prototype.interval;
     /** @type {?} */
     LoaderBarComponent.prototype.timer;
+    /** @type {?} */
+    LoaderBarComponent.prototype.filter;
     /**
      * @type {?}
      * @private
@@ -1032,10 +1094,74 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {?} */
-const ANIMATION_TIMEOUT = 200;
+const fadeIn = animation([style({ opacity: '0' }), animate('{{ time}} {{ easing }}', style({ opacity: '1' }))], {
+    params: { time: '350ms', easing: 'ease' },
+});
+/** @type {?} */
+const fadeOut = animation([style({ opacity: '1' }), animate('{{ time}} {{ easing }}', style({ opacity: '0' }))], { params: { time: '350ms', easing: 'ease' } });
+/** @type {?} */
+const fadeInDown = animation([
+    style({ opacity: '0', transform: '{{ transform }} translateY(-20px)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '1', transform: '{{ transform }} translateY(0)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeInUp = animation([
+    style({ opacity: '0', transform: '{{ transform }} translateY(20px)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '1', transform: '{{ transform }} translateY(0)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeInLeft = animation([
+    style({ opacity: '0', transform: '{{ transform }} translateX(20px)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '1', transform: '{{ transform }} translateX(0)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeInRight = animation([
+    style({ opacity: '0', transform: '{{ transform }} translateX(-20px)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '1', transform: '{{ transform }} translateX(0)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeOutDown = animation([
+    style({ opacity: '1', transform: '{{ transform }} translateY(0)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '0', transform: '{{ transform }} translateY(20px)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeOutUp = animation([
+    style({ opacity: '1', transform: '{{ transform }} translateY(0)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '0', transform: '{{ transform }} translateY(-20px)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeOutLeft = animation([
+    style({ opacity: '1', transform: '{{ transform }} translateX(0)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '0', transform: '{{ transform }} translateX(20px)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+/** @type {?} */
+const fadeOutRight = animation([
+    style({ opacity: '1', transform: '{{ transform }} translateX(0)' }),
+    animate('{{ time }} {{ easing }}', style({ opacity: '0', transform: '{{ transform }} translateX(-20px)' })),
+], { params: { time: '350ms', easing: 'ease', transform: '' } });
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+/** @type {?} */
+const fadeAnimation = trigger('fade', [
+    transition(':enter', useAnimation(fadeIn)),
+    transition(':leave', useAnimation(fadeOut)),
+]);
+/** @type {?} */
+const dialogAnimation = trigger('dialog', [
+    transition(':enter', useAnimation(fadeInDown)),
+    transition(':leave', useAnimation(fadeOut)),
+]);
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
 class ModalComponent {
     /**
      * @param {?} renderer
@@ -1049,13 +1175,12 @@ class ModalComponent {
         this.size = 'lg';
         this.visibleChange = new EventEmitter();
         this.init = new EventEmitter();
-        this.show = new EventEmitter();
-        this.hide = new EventEmitter();
+        this.appear = new EventEmitter();
+        this.disappear = new EventEmitter();
         this._visible = false;
         this._busy = false;
-        this.showModal = false;
-        this.isOpenConfirmation = false;
-        this.closable = false;
+        this.isModalOpen = false;
+        this.isConfirmationOpen = false;
         this.destroy$ = new Subject();
     }
     /**
@@ -1071,32 +1196,20 @@ class ModalComponent {
     set visible(value) {
         if (typeof value !== 'boolean')
             return;
-        if (!this.modalContent) {
-            if (value) {
-                setTimeout((/**
-                 * @return {?}
-                 */
-                () => {
-                    this.showModal = value;
-                    this.visible = value;
-                }), 0);
-            }
-            return;
-        }
+        this.isModalOpen = value;
+        this._visible = value;
+        this.visibleChange.emit(value);
         if (value) {
-            this.setVisible(value);
-            this.listen();
-        }
-        else {
-            this.closable = false;
-            this.renderer.addClass(this.modalContent.nativeElement, 'fade-out-top');
             setTimeout((/**
              * @return {?}
              */
-            () => {
-                this.setVisible(value);
-                this.ngOnDestroy();
-            }), ANIMATION_TIMEOUT - 10);
+            () => this.listen()), 0);
+            this.renderer.addClass(document.body, 'modal-open');
+            this.appear.emit();
+        }
+        else {
+            this.renderer.removeClass(document.body, 'modal-open');
+            this.disappear.emit();
         }
     }
     /**
@@ -1122,28 +1235,32 @@ class ModalComponent {
         this.destroy$.next();
     }
     /**
-     * @param {?} value
      * @return {?}
      */
-    setVisible(value) {
-        this._visible = value;
-        this.visibleChange.emit(value);
-        this.showModal = value;
-        if (value) {
-            timer(ANIMATION_TIMEOUT + 100)
-                .pipe(take(1))
+    close() {
+        if (this.busy)
+            return;
+        /** @type {?} */
+        const nodes = getFlatNodes(((/** @type {?} */ (this.modalContent.nativeElement.querySelector('#abp-modal-body')))).childNodes);
+        if (hasNgDirty(nodes)) {
+            if (this.isConfirmationOpen)
+                return;
+            this.isConfirmationOpen = true;
+            this.confirmationService
+                .warn('AbpAccount::AreYouSureYouWantToCancelEditingWarningMessage', 'AbpAccount::AreYouSure')
                 .subscribe((/**
-             * @param {?} _
+             * @param {?} status
              * @return {?}
              */
-            _ => (this.closable = true)));
-            this.renderer.addClass(document.body, 'modal-open');
-            this.show.emit();
+            (status) => {
+                this.isConfirmationOpen = false;
+                if (status === "confirm" /* confirm */) {
+                    this.visible = false;
+                }
+            }));
         }
         else {
-            this.closable = false;
-            this.renderer.removeClass(document.body, 'modal-open');
-            this.hide.emit();
+            this.visible = false;
         }
     }
     /**
@@ -1155,7 +1272,7 @@ class ModalComponent {
          * @param {?} key
          * @return {?}
          */
-        (key) => key && key.code === 'Escape' && this.closable)))
+        (key) => key && key.code === 'Escape')))
             .subscribe((/**
          * @param {?} _
          * @return {?}
@@ -1173,7 +1290,7 @@ class ModalComponent {
                 .pipe(takeUntil(this.destroy$), filter((/**
              * @return {?}
              */
-            () => !!(this.closable && this.modalContent))))
+            () => !!this.modalContent)))
                 .subscribe((/**
              * @return {?}
              */
@@ -1181,45 +1298,12 @@ class ModalComponent {
         }), 0);
         this.init.emit();
     }
-    /**
-     * @return {?}
-     */
-    close() {
-        if (!this.closable || this.busy)
-            return;
-        /** @type {?} */
-        const nodes = getFlatNodes(((/** @type {?} */ (this.modalContent.nativeElement.querySelector('#abp-modal-body')))).childNodes);
-        if (hasNgDirty(nodes)) {
-            if (this.isOpenConfirmation)
-                return;
-            this.isOpenConfirmation = true;
-            this.confirmationService
-                .warn('AbpAccount::AreYouSureYouWantToCancelEditingWarningMessage', 'AbpAccount::AreYouSure')
-                .subscribe((/**
-             * @param {?} status
-             * @return {?}
-             */
-            (status) => {
-                timer(ANIMATION_TIMEOUT).subscribe((/**
-                 * @return {?}
-                 */
-                () => {
-                    this.isOpenConfirmation = false;
-                }));
-                if (status === "confirm" /* confirm */) {
-                    this.visible = false;
-                }
-            }));
-        }
-        else {
-            this.visible = false;
-        }
-    }
 }
 ModalComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-modal',
-                template: "<div\n  *ngIf=\"showModal\"\n  (click)=\"close()\"\n  id=\"abp-modal\"\n  class=\"modal fade {{ modalClass }} d-block show\"\n  [style.padding-right.px]=\"'15'\"\n>\n  <div\n    id=\"abp-modal-container\"\n    class=\"modal-dialog modal-{{ size }} fade-in-top\"\n    tabindex=\"-1\"\n    [class.modal-dialog-centered]=\"centered\"\n    #abpModalContent\n  >\n    <div #content id=\"abp-modal-content\" class=\"modal-content\" (click)=\"$event.stopPropagation()\">\n      <div id=\"abp-modal-header\" class=\"modal-header\">\n        <ng-container *ngTemplateOutlet=\"abpHeader\"></ng-container>\n\n        <button id=\"abp-modal-close-button\" type=\"button\" class=\"close\" (click)=\"close()\">\n          <span aria-hidden=\"true\">&times;</span>\n        </button>\n      </div>\n      <div\n        id=\"abp-modal-body\"\n        class=\"modal-body\"\n        [style.height]=\"height || undefined\"\n        [style.minHeight]=\"minHeight || undefined\"\n      >\n        <ng-container *ngTemplateOutlet=\"abpBody\"></ng-container>\n      </div>\n      <div id=\"abp-modal-footer\" class=\"modal-footer\">\n        <ng-container *ngTemplateOutlet=\"abpFooter\"></ng-container>\n      </div>\n    </div>\n  </div>\n\n  <ng-content></ng-content>\n</div>\n"
+                template: "<ng-container *ngIf=\"visible\">\n  <div class=\"modal show {{ modalClass }}\" tabindex=\"-1\" role=\"dialog\">\n    <div class=\"modal-backdrop\" [@fade]=\"isModalOpen\" (click)=\"close()\"></div>\n    <div\n      id=\"abp-modal-dialog\"\n      class=\"modal-dialog modal-{{ size }}\"\n      role=\"document\"\n      [@dialog]=\"isModalOpen\"\n      #abpModalContent\n    >\n      <div id=\"abp-modal-content\" class=\"modal-content\">\n        <div id=\"abp-modal-header\" class=\"modal-header\">\n          <ng-container *ngTemplateOutlet=\"abpHeader\"></ng-container>\n          \u200B\n          <button id=\"abp-modal-close-button\" type=\"button\" class=\"close\" aria-label=\"Close\" (click)=\"close()\">\n            <span aria-hidden=\"true\">&times;</span>\n          </button>\n        </div>\n        <div id=\"abp-modal-body\" class=\"modal-body\">\n          <ng-container *ngTemplateOutlet=\"abpBody\"></ng-container>\n        </div>\n        <div id=\"abp-modal-footer\" class=\"modal-footer\">\n          <ng-container *ngTemplateOutlet=\"abpFooter\"></ng-container>\n        </div>\n      </div>\n    </div>\n    <ng-content></ng-content>\n  </div>\n</ng-container>\n",
+                animations: [fadeAnimation, dialogAnimation]
             }] }
 ];
 /** @nocollapse */
@@ -1233,19 +1317,17 @@ ModalComponent.propDecorators = {
     centered: [{ type: Input }],
     modalClass: [{ type: Input }],
     size: [{ type: Input }],
-    height: [{ type: Input }],
-    minHeight: [{ type: Input }],
-    visibleChange: [{ type: Output }],
-    init: [{ type: Output }],
+    abpSubmit: [{ type: ContentChild, args: [ButtonComponent, { static: false, read: ButtonComponent },] }],
     abpHeader: [{ type: ContentChild, args: ['abpHeader', { static: false },] }],
     abpBody: [{ type: ContentChild, args: ['abpBody', { static: false },] }],
     abpFooter: [{ type: ContentChild, args: ['abpFooter', { static: false },] }],
     abpClose: [{ type: ContentChild, args: ['abpClose', { static: false, read: ElementRef },] }],
-    abpSubmit: [{ type: ContentChild, args: [ButtonComponent, { static: false, read: ButtonComponent },] }],
     modalContent: [{ type: ViewChild, args: ['abpModalContent', { static: false },] }],
     abpButtons: [{ type: ViewChildren, args: ['abp-button',] }],
-    show: [{ type: Output }],
-    hide: [{ type: Output }]
+    visibleChange: [{ type: Output }],
+    init: [{ type: Output }],
+    appear: [{ type: Output }],
+    disappear: [{ type: Output }]
 };
 if (false) {
     /** @type {?} */
@@ -1255,13 +1337,7 @@ if (false) {
     /** @type {?} */
     ModalComponent.prototype.size;
     /** @type {?} */
-    ModalComponent.prototype.height;
-    /** @type {?} */
-    ModalComponent.prototype.minHeight;
-    /** @type {?} */
-    ModalComponent.prototype.visibleChange;
-    /** @type {?} */
-    ModalComponent.prototype.init;
+    ModalComponent.prototype.abpSubmit;
     /** @type {?} */
     ModalComponent.prototype.abpHeader;
     /** @type {?} */
@@ -1271,25 +1347,25 @@ if (false) {
     /** @type {?} */
     ModalComponent.prototype.abpClose;
     /** @type {?} */
-    ModalComponent.prototype.abpSubmit;
-    /** @type {?} */
     ModalComponent.prototype.modalContent;
     /** @type {?} */
     ModalComponent.prototype.abpButtons;
     /** @type {?} */
-    ModalComponent.prototype.show;
+    ModalComponent.prototype.visibleChange;
     /** @type {?} */
-    ModalComponent.prototype.hide;
+    ModalComponent.prototype.init;
+    /** @type {?} */
+    ModalComponent.prototype.appear;
+    /** @type {?} */
+    ModalComponent.prototype.disappear;
     /** @type {?} */
     ModalComponent.prototype._visible;
     /** @type {?} */
     ModalComponent.prototype._busy;
     /** @type {?} */
-    ModalComponent.prototype.showModal;
+    ModalComponent.prototype.isModalOpen;
     /** @type {?} */
-    ModalComponent.prototype.isOpenConfirmation;
-    /** @type {?} */
-    ModalComponent.prototype.closable;
+    ModalComponent.prototype.isConfirmationOpen;
     /** @type {?} */
     ModalComponent.prototype.destroy$;
     /**
@@ -1329,7 +1405,7 @@ function hasNgDirty(nodes) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { maxLength, required: required$1, email } = Validators;
 class ProfileComponent {
@@ -1374,7 +1450,7 @@ class ProfileComponent {
                 email: [profile.email, [required$1, email, maxLength(256)]],
                 name: [profile.name || '', [maxLength(64)]],
                 surname: [profile.surname || '', [maxLength(64)]],
-                phoneNumber: [profile.phoneNumber || '', [maxLength(16)]],
+                phoneNumber: [profile.phoneNumber || '', [maxLength(16)]]
             });
         }));
     }
@@ -1463,13 +1539,14 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class ToastComponent {
 }
 ToastComponent.decorators = [
     { type: Component, args: [{
                 selector: 'abp-toast',
+                // tslint:disable-next-line: component-max-inline-declarations
                 template: `
     <p-toast position="bottom-right" key="abpToast" styleClass="abp-toast" [baseZIndex]="1000">
       <ng-template let-message pTemplate="message">
@@ -1494,7 +1571,111 @@ ToastComponent.decorators = [
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+class SortOrderIconComponent {
+    constructor() {
+        this.selectedKeyChange = new EventEmitter();
+        this.orderChange = new EventEmitter();
+    }
+    /**
+     * @param {?} value
+     * @return {?}
+     */
+    set selectedKey(value) {
+        this._selectedKey = value;
+        this.selectedKeyChange.emit(value);
+    }
+    /**
+     * @return {?}
+     */
+    get selectedKey() {
+        return this._selectedKey;
+    }
+    /**
+     * @param {?} value
+     * @return {?}
+     */
+    set order(value) {
+        this._order = value;
+        this.orderChange.emit(value);
+    }
+    /**
+     * @return {?}
+     */
+    get order() {
+        return this._order;
+    }
+    /**
+     * @return {?}
+     */
+    get icon() {
+        if (!this.selectedKey)
+            return 'fa-sort';
+        if (this.selectedKey === this.key)
+            return `fa-sort-${this.order}`;
+        else
+            return '';
+    }
+    /**
+     * @param {?} key
+     * @return {?}
+     */
+    sort(key) {
+        this.selectedKey = key;
+        switch (this.order) {
+            case '':
+                this.order = 'asc';
+                break;
+            case 'asc':
+                this.order = 'desc';
+                this.orderChange.emit('desc');
+                break;
+            case 'desc':
+                this.order = '';
+                this.selectedKey = '';
+                break;
+        }
+    }
+}
+SortOrderIconComponent.decorators = [
+    { type: Component, args: [{
+                selector: 'abp-sort-order-icon',
+                template: "<span class=\"float-right {{ iconClass }}\">\n  <i class=\"fa {{ icon }}\"></i>\n</span>\n"
+            }] }
+];
+SortOrderIconComponent.propDecorators = {
+    selectedKey: [{ type: Input }],
+    selectedKeyChange: [{ type: Output }],
+    key: [{ type: Input }],
+    order: [{ type: Input }],
+    orderChange: [{ type: Output }],
+    iconClass: [{ type: Input }]
+};
+if (false) {
+    /**
+     * @type {?}
+     * @private
+     */
+    SortOrderIconComponent.prototype._order;
+    /**
+     * @type {?}
+     * @private
+     */
+    SortOrderIconComponent.prototype._selectedKey;
+    /** @type {?} */
+    SortOrderIconComponent.prototype.selectedKeyChange;
+    /** @type {?} */
+    SortOrderIconComponent.prototype.key;
+    /** @type {?} */
+    SortOrderIconComponent.prototype.orderChange;
+    /** @type {?} */
+    SortOrderIconComponent.prototype.iconClass;
+}
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var styles = `
 .is-invalid .form-control {
@@ -1526,8 +1707,22 @@ var styles = `
   min-width: 215px;
 }
 
-.modal {
- background-color: rgba(0, 0, 0, .6);
+.modal.show {
+  display: block !important;
+}
+
+.modal-backdrop {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  z-index: 1040 !important;
+}
+
+.modal-dialog {
+  z-index: 1050 !important;
 }
 
 .abp-ellipsis-inline {
@@ -1652,6 +1847,10 @@ var styles = `
   z-index: 1000;
 }
 
+.color-white {
+  color: #FFF !important;
+}
+
 /* <animations */
 
 .fade-in-top {
@@ -1670,7 +1869,7 @@ var styles = `
   }
 
   to {
-    transform: translateY(5px);
+    transform: translateY(0px);
     opacity: 1;
   }
 }
@@ -1688,30 +1887,40 @@ var styles = `
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {?} */
-const DEFAULTS = {
+const DEFAULT_ERROR_MESSAGES = {
     defaultError: {
-        message: 'An error has occurred!',
+        title: 'An error has occurred!',
         details: 'Error detail not sent by server.',
     },
     defaultError401: {
-        message: 'You are not authenticated!',
+        title: 'You are not authenticated!',
         details: 'You should be authenticated (sign in) in order to perform this operation.',
     },
     defaultError403: {
-        message: 'You are not authorized!',
+        title: 'You are not authorized!',
         details: 'You are not allowed to perform this operation.',
     },
     defaultError404: {
-        message: 'Resource not found!',
+        title: 'Resource not found!',
         details: 'The resource requested could not found on the server.',
+    },
+    defaultError500: {
+        title: '500',
+        details: { key: 'AbpAccount::InternalServerErrorMessage', defaultValue: 'Error detail not sent by server.' },
+    },
+    defaultErrorUnknown: {
+        title: 'Unknown Error',
+        details: { key: 'AbpAccount::InternalServerErrorMessage', defaultValue: 'Error detail not sent by server.' },
     },
 };
 class ErrorHandler {
     /**
      * @param {?} actions
+     * @param {?} router
+     * @param {?} ngZone
      * @param {?} store
      * @param {?} confirmationService
      * @param {?} appRef
@@ -1719,8 +1928,10 @@ class ErrorHandler {
      * @param {?} rendererFactory
      * @param {?} injector
      */
-    constructor(actions, store, confirmationService, appRef, cfRes, rendererFactory, injector) {
+    constructor(actions, router, ngZone, store, confirmationService, appRef, cfRes, rendererFactory, injector) {
         this.actions = actions;
+        this.router = router;
+        this.ngZone = ngZone;
         this.store = store;
         this.confirmationService = confirmationService;
         this.appRef = appRef;
@@ -1737,7 +1948,7 @@ class ErrorHandler {
             const body = snq((/**
              * @return {?}
              */
-            () => ((/** @type {?} */ (err))).error.error), DEFAULTS.defaultError.message);
+            () => ((/** @type {?} */ (err))).error.error), DEFAULT_ERROR_MESSAGES.defaultError.title);
             if (err instanceof HttpErrorResponse && err.headers.get('_AbpErrorFormat')) {
                 /** @type {?} */
                 const confirmation$ = this.showError(null, null, body);
@@ -1753,36 +1964,36 @@ class ErrorHandler {
             else {
                 switch (((/** @type {?} */ (err))).status) {
                     case 401:
-                        this.showError(DEFAULTS.defaultError401.details, DEFAULTS.defaultError401.message).subscribe((/**
+                        this.showError(DEFAULT_ERROR_MESSAGES.defaultError401.details, DEFAULT_ERROR_MESSAGES.defaultError401.title).subscribe((/**
                          * @return {?}
                          */
                         () => this.navigateToLogin()));
                         break;
                     case 403:
                         this.createErrorComponent({
-                            title: DEFAULTS.defaultError403.message,
-                            details: DEFAULTS.defaultError403.details,
+                            title: DEFAULT_ERROR_MESSAGES.defaultError403.title,
+                            details: DEFAULT_ERROR_MESSAGES.defaultError403.details,
                         });
                         break;
                     case 404:
-                        this.showError(DEFAULTS.defaultError404.details, DEFAULTS.defaultError404.message);
+                        this.showError(DEFAULT_ERROR_MESSAGES.defaultError404.details, DEFAULT_ERROR_MESSAGES.defaultError404.title);
                         break;
                     case 500:
                         this.createErrorComponent({
-                            title: '500',
-                            details: 'AbpAccount::InternalServerErrorMessage',
+                            title: DEFAULT_ERROR_MESSAGES.defaultError500.title,
+                            details: DEFAULT_ERROR_MESSAGES.defaultError500.details,
                         });
                         break;
                     case 0:
                         if (((/** @type {?} */ (err))).statusText === 'Unknown Error') {
                             this.createErrorComponent({
-                                title: 'Unknown Error',
-                                details: 'AbpAccount::InternalServerErrorMessage',
+                                title: DEFAULT_ERROR_MESSAGES.defaultErrorUnknown.title,
+                                details: DEFAULT_ERROR_MESSAGES.defaultErrorUnknown.details,
                             });
                         }
                         break;
                     default:
-                        this.showError(DEFAULTS.defaultError.details, DEFAULTS.defaultError.message);
+                        this.showError(DEFAULT_ERROR_MESSAGES.defaultError.details, DEFAULT_ERROR_MESSAGES.defaultError.title);
                         break;
                 }
             }
@@ -1802,7 +2013,7 @@ class ErrorHandler {
                 title = body.message;
             }
             else {
-                message = body.message || DEFAULTS.defaultError.message;
+                message = body.message || DEFAULT_ERROR_MESSAGES.defaultError.title;
             }
         }
         return this.confirmationService.error(message, title, {
@@ -1815,8 +2026,13 @@ class ErrorHandler {
      * @return {?}
      */
     navigateToLogin() {
-        this.store.dispatch(new Navigate(['/account/login'], null, {
-            state: { redirectUrl: this.store.selectSnapshot(RouterState).state.url },
+        this.ngZone.run((/**
+         * @return {?}
+         */
+        () => {
+            this.router.navigate(['/account/login'], {
+                state: { redirectUrl: this.router.url },
+            });
         }));
     }
     /**
@@ -1827,7 +2043,7 @@ class ErrorHandler {
         /** @type {?} */
         const renderer = this.rendererFactory.createRenderer(null, null);
         /** @type {?} */
-        const host = renderer.selectRootElement('app-root', true);
+        const host = renderer.selectRootElement(document.body, true);
         /** @type {?} */
         const componentRef = this.cfRes.resolveComponentFactory(ErrorComponent).create(this.injector);
         for (const key in componentRef.instance) {
@@ -1848,6 +2064,8 @@ ErrorHandler.decorators = [
 /** @nocollapse */
 ErrorHandler.ctorParameters = () => [
     { type: Actions },
+    { type: Router },
+    { type: NgZone },
     { type: Store },
     { type: ConfirmationService },
     { type: ApplicationRef },
@@ -1855,13 +2073,23 @@ ErrorHandler.ctorParameters = () => [
     { type: RendererFactory2 },
     { type: Injector }
 ];
-/** @nocollapse */ ErrorHandler.ngInjectableDef = ɵɵdefineInjectable({ factory: function ErrorHandler_Factory() { return new ErrorHandler(ɵɵinject(Actions), ɵɵinject(Store), ɵɵinject(ConfirmationService), ɵɵinject(ApplicationRef), ɵɵinject(ComponentFactoryResolver), ɵɵinject(RendererFactory2), ɵɵinject(INJECTOR)); }, token: ErrorHandler, providedIn: "root" });
+/** @nocollapse */ ErrorHandler.ngInjectableDef = ɵɵdefineInjectable({ factory: function ErrorHandler_Factory() { return new ErrorHandler(ɵɵinject(Actions), ɵɵinject(Router), ɵɵinject(NgZone), ɵɵinject(Store), ɵɵinject(ConfirmationService), ɵɵinject(ApplicationRef), ɵɵinject(ComponentFactoryResolver), ɵɵinject(RendererFactory2), ɵɵinject(INJECTOR)); }, token: ErrorHandler, providedIn: "root" });
 if (false) {
     /**
      * @type {?}
      * @private
      */
     ErrorHandler.prototype.actions;
+    /**
+     * @type {?}
+     * @private
+     */
+    ErrorHandler.prototype.router;
+    /**
+     * @type {?}
+     * @private
+     */
+    ErrorHandler.prototype.ngZone;
     /**
      * @type {?}
      * @private
@@ -1896,7 +2124,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class TableEmptyMessageComponent {
     constructor() {
@@ -1913,6 +2141,7 @@ class TableEmptyMessageComponent {
 }
 TableEmptyMessageComponent.decorators = [
     { type: Component, args: [{
+                // tslint:disable-next-line: component-selector
                 selector: '[abp-table-empty-message]',
                 template: `
     <td class="text-center" [attr.colspan]="colspan">
@@ -1940,7 +2169,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @param {?} injector
@@ -1951,14 +2180,14 @@ function appendScript(injector) {
     const fn = (/**
      * @return {?}
      */
-    function () {
+    () => {
         import('chart.js').then((/**
          * @return {?}
          */
         () => chartJsLoaded$.next(true)));
         /** @type {?} */
         const lazyLoadService = injector.get(LazyLoadService);
-        return forkJoin(lazyLoadService.load(null, 'style', styles, 'head', 'afterbegin') /* lazyLoadService.load(null, 'script', scripts) */).pipe(take(1));
+        return forkJoin(lazyLoadService.load(null, 'style', styles, 'head', 'afterbegin') /* lazyLoadService.load(null, 'script', scripts) */).toPromise();
     });
     return fn;
 }
@@ -1983,7 +2212,7 @@ class ThemeSharedModule {
 }
 ThemeSharedModule.decorators = [
     { type: NgModule, args: [{
-                imports: [CoreModule, ToastModule],
+                imports: [CoreModule, ToastModule, NgxValidateCoreModule],
                 declarations: [
                     BreadcrumbComponent,
                     ButtonComponent,
@@ -1996,6 +2225,7 @@ ThemeSharedModule.decorators = [
                     ProfileComponent,
                     TableEmptyMessageComponent,
                     ToastComponent,
+                    SortOrderIconComponent,
                 ],
                 exports: [
                     BreadcrumbComponent,
@@ -2008,6 +2238,7 @@ ThemeSharedModule.decorators = [
                     ProfileComponent,
                     TableEmptyMessageComponent,
                     ToastComponent,
+                    SortOrderIconComponent,
                 ],
                 entryComponents: [ErrorComponent],
             },] }
@@ -2015,68 +2246,82 @@ ThemeSharedModule.decorators = [
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
+/** @type {?} */
+const bounceIn = animation([
+    style({ opacity: '0', display: '{{ display }}' }),
+    animate('{{ time}} {{ easing }}', keyframes([
+        style({ opacity: '0', transform: '{{ transform }} scale(0.0)', offset: 0 }),
+        style({ opacity: '0', transform: '{{ transform }} scale(0.8)', offset: 0.5 }),
+        style({ opacity: '1', transform: '{{ transform }} scale(1.0)', offset: 1 })
+    ]))
+], {
+    params: {
+        time: '350ms',
+        easing: 'cubic-bezier(.7,.31,.72,1.47)',
+        display: 'block',
+        transform: 'translate(-50%, -50%)'
+    }
+});
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+/** @type {?} */
+const collapseY = animation([
+    style({ height: '*', overflow: 'hidden', 'box-sizing': 'border-box' }),
+    animate('{{ time }} {{ easing }}', style({ height: '0', padding: '0px' }))
+], { params: { time: '350ms', easing: 'ease' } });
+/** @type {?} */
+const collapseX = animation([
+    style({ width: '*', overflow: 'hidden', 'box-sizing': 'border-box' }),
+    animate('{{ time }} {{ easing }}', style({ width: '0', padding: '0px' }))
+], { params: { time: '350ms', easing: 'ease' } });
+/** @type {?} */
+const expandY = animation([
+    style({ height: '0', overflow: 'hidden', 'box-sizing': 'border-box' }),
+    animate('{{ time }} {{ easing }}', style({ height: '*', padding: '*' }))
+], { params: { time: '350ms', easing: 'ease' } });
+/** @type {?} */
+const expandX = animation([
+    style({ width: '0', overflow: 'hidden', 'box-sizing': 'border-box' }),
+    animate('{{ time }} {{ easing }}', style({ width: '*', padding: '*' }))
+], { params: { time: '350ms', easing: 'ease' } });
 /** @type {?} */
 const collapse = trigger('collapse', [
-    state('open', style({
-        height: '*',
-        overflow: 'hidden',
-    })),
-    state('close', style({
-        height: '0px',
-        overflow: 'hidden',
-    })),
-    transition(`open <=> close`, animate('{{duration}}ms'), { params: { duration: '350' } }),
+    state('collapsed', style({ height: '0', overflow: 'hidden' })),
+    state('expanded', style({ height: '*', overflow: 'hidden' })),
+    transition('expanded => collapsed', useAnimation(collapseY)),
+    transition('collapsed => expanded', useAnimation(expandY))
 ]);
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {?} */
-const fade = trigger('fade', [
-    state('void', style({ opacity: 1 })),
-    transition(':enter', [style({ opacity: 0 }), animate(250)]),
-    transition(':leave', animate(250, style({ opacity: 0 }))),
-]);
-/** @type {?} */
-const fadeWithStates = trigger('fadeInOut', [
-    state('out', style({ opacity: 0 })),
-    state('in', style({ opacity: 1 })),
-    transition('in <=> out', [animate(250)]),
-]);
-/** @type {?} */
-const fadeIn = trigger('fadeIn', [
-    state('*', style({ opacity: 1 })),
-    transition('* => *', [style({ opacity: 0 }), animate(250)]),
-    transition(':enter', [style({ opacity: 0 }), animate(250)]),
+const slideFromBottom = trigger('slideFromBottom', [
+    transition('* <=> *', [
+        style({ 'margin-top': '20px', opacity: '0' }),
+        animate('0.2s ease-out', style({ opacity: '1', 'margin-top': '0px' })),
+    ]),
 ]);
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
- */
-/** @type {?} */
-const slideFromBottom = trigger('routeAnimations', [
-    state('void', style({ 'margin-top': '20px', opacity: '0' })),
-    state('*', style({ 'margin-top': '0px', opacity: '1' })),
-    transition(':enter', [animate('0.2s ease-out', style({ opacity: '1', 'margin-top': '0px' }))]),
-]);
-
-/**
- * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var Confirmation;
 (function (Confirmation) {
@@ -2099,7 +2344,7 @@ var Confirmation;
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -2107,18 +2352,36 @@ var Confirmation;
 function SettingTab() { }
 if (false) {
     /** @type {?} */
+    SettingTab.prototype.component;
+    /** @type {?} */
     SettingTab.prototype.name;
     /** @type {?} */
     SettingTab.prototype.order;
     /** @type {?|undefined} */
     SettingTab.prototype.requiredPolicy;
-    /** @type {?|undefined} */
-    SettingTab.prototype.url;
+}
+/** @type {?} */
+const SETTING_TABS = (/** @type {?} */ ([]));
+/**
+ * @param {?} tab
+ * @return {?}
+ */
+function addSettingTab(tab) {
+    if (!Array.isArray(tab)) {
+        tab = [tab];
+    }
+    SETTING_TABS.push(...tab);
+}
+/**
+ * @return {?}
+ */
+function getSettingTabs() {
+    return SETTING_TABS;
 }
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var Statistics;
 (function (Statistics) {
@@ -2151,7 +2414,7 @@ var Statistics;
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var Toaster;
 (function (Toaster) {
@@ -2180,28 +2443,28 @@ var Toaster;
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
-export { BreadcrumbComponent, ButtonComponent, ChangePasswordComponent, ChartComponent, ConfirmationComponent, ConfirmationService, LoaderBarComponent, ModalComponent, ProfileComponent, TableEmptyMessageComponent, ThemeSharedModule, ToastComponent, Toaster, ToasterService, appendScript, chartJsLoaded$, collapse, fade, fadeIn, fadeWithStates, getRandomBackgroundColor, slideFromBottom, BreadcrumbComponent as ɵa, ButtonComponent as ɵb, ChangePasswordComponent as ɵc, ToasterService as ɵd, AbstractToaster as ɵe, ChartComponent as ɵf, ConfirmationComponent as ɵg, ConfirmationService as ɵh, ErrorComponent as ɵi, LoaderBarComponent as ɵj, ModalComponent as ɵk, ProfileComponent as ɵl, TableEmptyMessageComponent as ɵm, ToastComponent as ɵn, ErrorHandler as ɵo };
+export { BreadcrumbComponent, ButtonComponent, ChangePasswordComponent, ChartComponent, ConfirmationComponent, ConfirmationService, LoaderBarComponent, ModalComponent, ProfileComponent, SortOrderIconComponent, TableEmptyMessageComponent, ThemeSharedModule, ToastComponent, Toaster, ToasterService, addSettingTab, appendScript, bounceIn, chartJsLoaded$, collapse, collapseX, collapseY, dialogAnimation, expandX, expandY, fadeAnimation, fadeIn, fadeInDown, fadeInLeft, fadeInRight, fadeInUp, fadeOut, fadeOutDown, fadeOutLeft, fadeOutRight, fadeOutUp, getRandomBackgroundColor, getSettingTabs, slideFromBottom, BreadcrumbComponent as ɵa, ButtonComponent as ɵb, ChangePasswordComponent as ɵc, ToasterService as ɵd, AbstractToaster as ɵe, ChartComponent as ɵf, ConfirmationComponent as ɵg, ConfirmationService as ɵh, ErrorComponent as ɵi, LoaderBarComponent as ɵj, ModalComponent as ɵk, fadeAnimation as ɵl, dialogAnimation as ɵm, fadeIn as ɵn, fadeOut as ɵo, fadeInDown as ɵp, ProfileComponent as ɵq, TableEmptyMessageComponent as ɵr, ToastComponent as ɵs, SortOrderIconComponent as ɵt, ErrorHandler as ɵu };
 //# sourceMappingURL=abp-ng.theme.shared.js.map

@@ -203,7 +203,7 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var GetPermissions = /** @class */ (function () {
         function GetPermissions(payload) {
@@ -234,7 +234,7 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var PermissionManagementService = /** @class */ (function () {
         function PermissionManagementService(rest) {
@@ -298,7 +298,7 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var PermissionManagementState = /** @class */ (function () {
         function PermissionManagementState(permissionManagementService) {
@@ -365,6 +365,9 @@
             var payload = _a.payload;
             return this.permissionManagementService.updatePermissions(payload);
         };
+        PermissionManagementState.ctorParameters = function () { return [
+            { type: PermissionManagementService }
+        ]; };
         __decorate([
             store.Action(GetPermissions),
             __metadata("design:type", Function),
@@ -408,7 +411,7 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var PermissionManagementComponent = /** @class */ (function () {
         function PermissionManagementComponent(store, renderer) {
@@ -722,7 +725,7 @@
                     .dispatch(new UpdatePermissions({
                     providerKey: this.providerKey,
                     providerName: this.providerName,
-                    permissions: changedPermissions,
+                    permissions: changedPermissions
                 }))
                     .subscribe((/**
                  * @return {?}
@@ -749,7 +752,10 @@
                 throw new Error('Provider Key and Provider Name are required.');
             }
             this.store
-                .dispatch(new GetPermissions({ providerKey: this.providerKey, providerName: this.providerName }))
+                .dispatch(new GetPermissions({
+                providerKey: this.providerKey,
+                providerName: this.providerName
+            }))
                 .pipe(operators.pluck('PermissionManagementState', 'permissionRes'))
                 .subscribe((/**
              * @param {?} permissionRes
@@ -890,7 +896,7 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var PermissionManagementModule = /** @class */ (function () {
         function PermissionManagementModule() {
@@ -907,17 +913,17 @@
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
 
     /**
      * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
      */
     var PermissionManagement;
     (function (PermissionManagement) {
@@ -1002,11 +1008,63 @@
         }
     })(PermissionManagement || (PermissionManagement = {}));
 
+    /**
+     * @fileoverview added by tsickle
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     */
+
+    /**
+     * @fileoverview added by tsickle
+     * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+     */
+    var PermissionManagementStateService = /** @class */ (function () {
+        function PermissionManagementStateService(store) {
+            this.store = store;
+        }
+        /**
+         * @return {?}
+         */
+        PermissionManagementStateService.prototype.getPermissionGroups = /**
+         * @return {?}
+         */
+        function () {
+            return this.store.selectSnapshot(PermissionManagementState.getPermissionGroups);
+        };
+        /**
+         * @return {?}
+         */
+        PermissionManagementStateService.prototype.getEntityDisplayName = /**
+         * @return {?}
+         */
+        function () {
+            return this.store.selectSnapshot(PermissionManagementState.getPermissionGroups);
+        };
+        PermissionManagementStateService.decorators = [
+            { type: core.Injectable, args: [{
+                        providedIn: 'root',
+                    },] }
+        ];
+        /** @nocollapse */
+        PermissionManagementStateService.ctorParameters = function () { return [
+            { type: store.Store }
+        ]; };
+        /** @nocollapse */ PermissionManagementStateService.ngInjectableDef = core.ɵɵdefineInjectable({ factory: function PermissionManagementStateService_Factory() { return new PermissionManagementStateService(core.ɵɵinject(store.Store)); }, token: PermissionManagementStateService, providedIn: "root" });
+        return PermissionManagementStateService;
+    }());
+    if (false) {
+        /**
+         * @type {?}
+         * @private
+         */
+        PermissionManagementStateService.prototype.store;
+    }
+
     exports.GetPermissions = GetPermissions;
     exports.PermissionManagementComponent = PermissionManagementComponent;
     exports.PermissionManagementModule = PermissionManagementModule;
     exports.PermissionManagementService = PermissionManagementService;
     exports.PermissionManagementState = PermissionManagementState;
+    exports.PermissionManagementStateService = PermissionManagementStateService;
     exports.UpdatePermissions = UpdatePermissions;
     exports.ɵa = PermissionManagementComponent;
     exports.ɵb = PermissionManagementState;

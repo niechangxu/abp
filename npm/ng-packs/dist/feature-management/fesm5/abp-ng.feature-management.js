@@ -9,7 +9,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var GetFeatures = /** @class */ (function () {
     function GetFeatures(payload) {
@@ -40,12 +40,12 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var FeatureManagementService = /** @class */ (function () {
     function FeatureManagementService(rest, store) {
@@ -116,7 +116,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var FeatureManagementState = /** @class */ (function () {
     function FeatureManagementState(featureManagementService) {
@@ -172,6 +172,9 @@ var FeatureManagementState = /** @class */ (function () {
         var payload = _a.payload;
         return this.featureManagementService.updateFeatures(payload);
     };
+    FeatureManagementState.ctorParameters = function () { return [
+        { type: FeatureManagementService }
+    ]; };
     __decorate([
         Action(GetFeatures),
         __metadata("design:type", Function),
@@ -209,12 +212,12 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var FeatureManagementComponent = /** @class */ (function () {
     function FeatureManagementComponent(store) {
@@ -263,7 +266,10 @@ var FeatureManagementComponent = /** @class */ (function () {
     function () {
         var _this = this;
         this.store
-            .dispatch(new GetFeatures({ providerKey: this.providerKey, providerName: this.providerName }))
+            .dispatch(new GetFeatures({
+            providerKey: this.providerKey,
+            providerName: this.providerName
+        }))
             .pipe(pluck('FeatureManagementState', 'features'))
             .subscribe((/**
          * @param {?} features
@@ -307,13 +313,13 @@ var FeatureManagementComponent = /** @class */ (function () {
          */
         function (feature, i) { return ({
             name: feature.name,
-            value: !_this.form.value[i] || _this.form.value[i] === 'false' ? null : _this.form.value[i],
+            value: !_this.form.value[i] || _this.form.value[i] === 'false' ? null : _this.form.value[i]
         }); }));
         this.store
             .dispatch(new UpdateFeatures({
             providerKey: this.providerKey,
             providerName: this.providerName,
-            features: features,
+            features: features
         }))
             .subscribe((/**
          * @return {?}
@@ -372,7 +378,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 var FeatureManagementModule = /** @class */ (function () {
     function FeatureManagementModule() {
@@ -389,17 +395,17 @@ var FeatureManagementModule = /** @class */ (function () {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 export { FeatureManagementComponent, FeatureManagementModule, FeatureManagementComponent as ɵa, FeatureManagementState as ɵb, FeatureManagementState as ɵc, FeatureManagementService as ɵd, GetFeatures as ɵe, UpdateFeatures as ɵf };

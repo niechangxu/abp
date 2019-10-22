@@ -1,6 +1,6 @@
 import { ABP } from '@abp/ng.core';
 import { ConfirmationService, Toaster } from '@abp/ng.theme.shared';
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
@@ -11,9 +11,9 @@ import { IdentityState } from '../../states/identity.state';
 
 @Component({
   selector: 'abp-roles',
-  templateUrl: './roles.component.html'
+  templateUrl: './roles.component.html',
 })
-export class RolesComponent {
+export class RolesComponent implements OnInit {
   @Select(IdentityState.getRoles)
   data$: Observable<Identity.RoleItem[]>;
 
@@ -30,20 +30,24 @@ export class RolesComponent {
 
   providerKey: string;
 
-  pageQuery: ABP.PageQueryParams = {
-    sorting: 'name'
-  };
+  pageQuery: ABP.PageQueryParams = {};
 
   loading = false;
 
   modalBusy = false;
 
-  sortOrder = 'asc';
+  sortOrder = '';
+
+  sortKey = '';
 
   @ViewChild('modalContent', { static: false })
   modalContent: TemplateRef<any>;
 
   constructor(private confirmationService: ConfirmationService, private fb: FormBuilder, private store: Store) {}
+
+  ngOnInit() {
+    this.get();
+  }
 
   onSearch(value) {
     this.pageQuery.filter = value;
@@ -54,10 +58,10 @@ export class RolesComponent {
     this.form = this.fb.group({
       name: new FormControl({ value: this.selected.name || '', disabled: this.selected.isStatic }, [
         Validators.required,
-        Validators.maxLength(256)
+        Validators.maxLength(256),
       ]),
       isDefault: [this.selected.isDefault || false],
-      isPublic: [this.selected.isPublic || false]
+      isPublic: [this.selected.isPublic || false],
     });
   }
 
@@ -89,7 +93,7 @@ export class RolesComponent {
       .dispatch(
         this.selected.id
           ? new UpdateRole({ ...this.form.value, id: this.selected.id })
-          : new CreateRole(this.form.value)
+          : new CreateRole(this.form.value),
       )
       .subscribe(() => {
         this.modalBusy = false;
@@ -100,7 +104,7 @@ export class RolesComponent {
   delete(id: string, name: string) {
     this.confirmationService
       .warn('AbpIdentity::RoleDeletionConfirmationMessage', 'AbpIdentity::AreYouSure', {
-        messageLocalizationParams: [name]
+        messageLocalizationParams: [name],
       })
       .subscribe((status: Toaster.Status) => {
         if (status === Toaster.Status.confirm) {
@@ -122,9 +126,5 @@ export class RolesComponent {
       .dispatch(new GetRoles(this.pageQuery))
       .pipe(finalize(() => (this.loading = false)))
       .subscribe();
-  }
-
-  changeSortOrder() {
-    this.sortOrder = this.sortOrder.toLowerCase() === 'asc' ? 'desc' : 'asc';
   }
 }

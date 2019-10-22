@@ -1,21 +1,23 @@
-import { ConfigState, GetAppConfiguration, RestService, DynamicLayoutComponent, SessionState, SetTenant, CoreModule } from '@abp/ng.core';
-import { ToasterService, ThemeSharedModule } from '@abp/ng.theme.shared';
+import { ConfigState, GetAppConfiguration, RestService, DynamicLayoutComponent, ChangePassword, GetProfile, UpdateProfile, ProfileState, SessionState, SetTenant, CoreModule } from '@abp/ng.core';
+import { ToasterService, fadeIn, ThemeSharedModule } from '@abp/ng.theme.shared';
 import { Component, Optional, Inject, Injectable, ɵɵdefineInjectable, ɵɵinject, NgModule, InjectionToken } from '@angular/core';
 import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { NgxValidateCoreModule } from '@ngx-validate/core';
+import { comparePasswords, NgxValidateCoreModule } from '@ngx-validate/core';
 import { TableModule } from 'primeng/table';
 import { RouterModule } from '@angular/router';
 import { Validators, FormBuilder } from '@angular/forms';
 import { Navigate } from '@ngxs/router-plugin';
-import { Store } from '@ngxs/store';
+import { Store, Select } from '@ngxs/store';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { from, throwError } from 'rxjs';
-import { switchMap, tap, catchError, finalize, take } from 'rxjs/operators';
+import { from, throwError, Observable } from 'rxjs';
+import { switchMap, tap, catchError, finalize, take, withLatestFrom } from 'rxjs/operators';
 import snq from 'snq';
+import { trigger, transition, useAnimation } from '@angular/animations';
+import { __decorate, __metadata } from 'tslib';
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { maxLength, minLength, required } = Validators;
 class LoginComponent {
@@ -131,7 +133,28 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+class ManageProfileComponent {
+    constructor() {
+        this.selectedTab = 0;
+    }
+}
+ManageProfileComponent.decorators = [
+    { type: Component, args: [{
+                selector: 'abp-manage-profile',
+                template: "<div class=\"row entry-row\">\n  <div class=\"col-auto\"></div>\n  <div id=\"breadcrumb\" class=\"col-md-auto pl-md-0\"></div>\n  <div class=\"col\"></div>\n</div>\n\n<div id=\"ManageProfileWrapper\">\n  <div class=\"row\">\n    <div class=\"col-3\">\n      <ul class=\"nav flex-column nav-pills\" id=\"nav-tab\" role=\"tablist\">\n        <li class=\"nav-item pointer\" (click)=\"selectedTab = 0\">\n          <a class=\"nav-link\" [ngClass]=\"{ active: selectedTab === 0 }\" role=\"tab\">{{\n            'AbpUi::ChangePassword' | abpLocalization\n          }}</a>\n        </li>\n        <li class=\"nav-item pointer\" (click)=\"selectedTab = 1\">\n          <a class=\"nav-link\" [ngClass]=\"{ active: selectedTab === 1 }\" role=\"tab\">{{\n            'AbpAccount::PersonalSettings' | abpLocalization\n          }}</a>\n        </li>\n      </ul>\n    </div>\n    <div class=\"col-9\">\n      <div class=\"tab-content\" *ngIf=\"selectedTab === 0\" [@fadeIn]>\n        <div class=\"tab-pane active\" role=\"tabpanel\">\n          <abp-change-password-form></abp-change-password-form>\n        </div>\n      </div>\n      <div class=\"tab-content\" *ngIf=\"selectedTab === 1\" [@fadeIn]>\n        <div class=\"tab-pane active\" role=\"tabpanel\">\n          <abp-personal-settings-form></abp-personal-settings-form>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n",
+                animations: [trigger('fadeIn', [transition(':enter', useAnimation(fadeIn))])]
+            }] }
+];
+if (false) {
+    /** @type {?} */
+    ManageProfileComponent.prototype.selectedTab;
+}
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class AccountService {
     /**
@@ -160,7 +183,7 @@ class AccountService {
         /** @type {?} */
         const request = {
             method: 'POST',
-            url: `/api/account/register`,
+            url: '/api/account/register',
             body,
         };
         return this.rest.request(request, { skipHandleError: true });
@@ -186,7 +209,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { maxLength: maxLength$1, minLength: minLength$1, required: required$1, email } = Validators;
 class RegisterComponent {
@@ -305,7 +328,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {?} */
 const routes = [
@@ -313,7 +336,14 @@ const routes = [
     {
         path: '',
         component: DynamicLayoutComponent,
-        children: [{ path: 'login', component: LoginComponent }, { path: 'register', component: RegisterComponent }],
+        children: [
+            { path: 'login', component: LoginComponent },
+            { path: 'register', component: RegisterComponent },
+            {
+                path: 'manage-profile',
+                component: ManageProfileComponent,
+            },
+        ],
     },
 ];
 class AccountRoutingModule {
@@ -327,7 +357,215 @@ AccountRoutingModule.decorators = [
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+const { minLength: minLength$2, required: required$2 } = Validators;
+/** @type {?} */
+const PASSWORD_FIELDS = ['newPassword', 'repeatNewPassword'];
+class ChangePasswordComponent {
+    /**
+     * @param {?} fb
+     * @param {?} store
+     * @param {?} toasterService
+     */
+    constructor(fb, store, toasterService) {
+        this.fb = fb;
+        this.store = store;
+        this.toasterService = toasterService;
+        this.mapErrorsFn = (/**
+         * @param {?} errors
+         * @param {?} groupErrors
+         * @param {?} control
+         * @return {?}
+         */
+        (errors, groupErrors, control) => {
+            if (PASSWORD_FIELDS.indexOf(control.name) < 0)
+                return errors;
+            return errors.concat(groupErrors.filter((/**
+             * @param {?} __0
+             * @return {?}
+             */
+            ({ key }) => key === 'passwordMismatch')));
+        });
+    }
+    /**
+     * @return {?}
+     */
+    ngOnInit() {
+        this.form = this.fb.group({
+            password: ['', required$2],
+            newPassword: ['', required$2],
+            repeatNewPassword: ['', required$2],
+        }, {
+            validators: [comparePasswords(PASSWORD_FIELDS)],
+        });
+    }
+    /**
+     * @return {?}
+     */
+    onSubmit() {
+        if (this.form.invalid)
+            return;
+        this.store
+            .dispatch(new ChangePassword({
+            currentPassword: this.form.get('password').value,
+            newPassword: this.form.get('newPassword').value,
+        }))
+            .subscribe({
+            next: (/**
+             * @return {?}
+             */
+            () => {
+                this.form.reset();
+                this.toasterService.success('AbpAccount::PasswordChangedMessage', 'Success', { life: 5000 });
+            }),
+            error: (/**
+             * @param {?} err
+             * @return {?}
+             */
+            err => {
+                this.toasterService.error(snq((/**
+                 * @return {?}
+                 */
+                () => err.error.error.message), 'AbpAccount::DefaultErrorMessage'), 'Error', {
+                    life: 7000,
+                });
+            }),
+        });
+    }
+}
+ChangePasswordComponent.decorators = [
+    { type: Component, args: [{
+                selector: 'abp-change-password-form',
+                template: "<form [formGroup]=\"form\" (ngSubmit)=\"onSubmit()\" [mapErrorsFn]=\"mapErrorsFn\">\n  <div class=\"form-group\">\n    <label for=\"current-password\">{{ 'AbpIdentity::DisplayName:CurrentPassword' | abpLocalization }}</label\n    ><span> * </span\n    ><input type=\"password\" id=\"current-password\" class=\"form-control\" formControlName=\"password\" autofocus />\n  </div>\n  <div class=\"form-group\">\n    <label for=\"new-password\">{{ 'AbpIdentity::DisplayName:NewPassword' | abpLocalization }}</label\n    ><span> * </span><input type=\"password\" id=\"new-password\" class=\"form-control\" formControlName=\"newPassword\" />\n  </div>\n  <div class=\"form-group\">\n    <label for=\"confirm-new-password\">{{ 'AbpIdentity::DisplayName:NewPasswordConfirm' | abpLocalization }}</label\n    ><span> * </span\n    ><input type=\"password\" id=\"confirm-new-password\" class=\"form-control\" formControlName=\"repeatNewPassword\" />\n  </div>\n  <abp-button iconClass=\"fa fa-check\" buttonClass=\"btn btn-primary color-white\" buttonType=\"submit\">{{\n    'AbpIdentity::Save' | abpLocalization\n  }}</abp-button>\n</form>\n"
+            }] }
+];
+/** @nocollapse */
+ChangePasswordComponent.ctorParameters = () => [
+    { type: FormBuilder },
+    { type: Store },
+    { type: ToasterService }
+];
+if (false) {
+    /** @type {?} */
+    ChangePasswordComponent.prototype.form;
+    /** @type {?} */
+    ChangePasswordComponent.prototype.mapErrorsFn;
+    /**
+     * @type {?}
+     * @private
+     */
+    ChangePasswordComponent.prototype.fb;
+    /**
+     * @type {?}
+     * @private
+     */
+    ChangePasswordComponent.prototype.store;
+    /**
+     * @type {?}
+     * @private
+     */
+    ChangePasswordComponent.prototype.toasterService;
+}
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ */
+const { maxLength: maxLength$2, required: required$3, email: email$1 } = Validators;
+class PersonalSettingsComponent {
+    /**
+     * @param {?} fb
+     * @param {?} store
+     * @param {?} toasterService
+     */
+    constructor(fb, store, toasterService) {
+        this.fb = fb;
+        this.store = store;
+        this.toasterService = toasterService;
+    }
+    /**
+     * @return {?}
+     */
+    buildForm() {
+        this.store
+            .dispatch(new GetProfile())
+            .pipe(withLatestFrom(this.profile$), take(1))
+            .subscribe((/**
+         * @param {?} __0
+         * @return {?}
+         */
+        ([, profile]) => {
+            this.form = this.fb.group({
+                userName: [profile.userName, [required$3, maxLength$2(256)]],
+                email: [profile.email, [required$3, email$1, maxLength$2(256)]],
+                name: [profile.name || '', [maxLength$2(64)]],
+                surname: [profile.surname || '', [maxLength$2(64)]],
+                phoneNumber: [profile.phoneNumber || '', [maxLength$2(16)]],
+            });
+        }));
+    }
+    /**
+     * @return {?}
+     */
+    submit() {
+        if (this.form.invalid)
+            return;
+        this.store.dispatch(new UpdateProfile(this.form.value)).subscribe((/**
+         * @return {?}
+         */
+        () => {
+            this.toasterService.success('AbpAccount::PersonalSettingsSaved', 'Success', { life: 5000 });
+        }));
+    }
+    /**
+     * @return {?}
+     */
+    ngOnInit() {
+        this.buildForm();
+    }
+}
+PersonalSettingsComponent.decorators = [
+    { type: Component, args: [{
+                selector: 'abp-personal-settings-form',
+                template: "<form novalidate *ngIf=\"form\" [formGroup]=\"form\" (ngSubmit)=\"submit()\">\n  <div class=\"form-group\">\n    <label for=\"username\">{{ 'AbpIdentity::DisplayName:UserName' | abpLocalization }}</label\n    ><span> * </span><input type=\"text\" id=\"username\" class=\"form-control\" formControlName=\"userName\" autofocus />\n  </div>\n  <div class=\"row\">\n    <div class=\"col col-md-6\">\n      <div class=\"form-group\">\n        <label for=\"name\">{{ 'AbpIdentity::DisplayName:Name' | abpLocalization }}</label\n        ><input type=\"text\" id=\"name\" class=\"form-control\" formControlName=\"name\" />\n      </div>\n    </div>\n    <div class=\"col col-md-6\">\n      <div class=\"form-group\">\n        <label for=\"surname\">{{ 'AbpIdentity::DisplayName:Surname' | abpLocalization }}</label\n        ><input type=\"text\" id=\"surname\" class=\"form-control\" formControlName=\"surname\" />\n      </div>\n    </div>\n  </div>\n  <div class=\"form-group\">\n    <label for=\"email-address\">{{ 'AbpIdentity::DisplayName:Email' | abpLocalization }}</label\n    ><span> * </span><input type=\"text\" id=\"email-address\" class=\"form-control\" formControlName=\"email\" />\n  </div>\n  <div class=\"form-group\">\n    <label for=\"phone-number\">{{ 'AbpIdentity::DisplayName:PhoneNumber' | abpLocalization }}</label\n    ><input type=\"text\" id=\"phone-number\" class=\"form-control\" formControlName=\"phoneNumber\" />\n  </div>\n  <abp-button buttonType=\"submit\" iconClass=\"fa fa-check\" buttonClass=\"btn btn-primary color-white\">\n    {{ 'AbpIdentity::Save' | abpLocalization }}</abp-button\n  >\n</form>\n"
+            }] }
+];
+/** @nocollapse */
+PersonalSettingsComponent.ctorParameters = () => [
+    { type: FormBuilder },
+    { type: Store },
+    { type: ToasterService }
+];
+__decorate([
+    Select(ProfileState.getProfile),
+    __metadata("design:type", Observable)
+], PersonalSettingsComponent.prototype, "profile$", void 0);
+if (false) {
+    /** @type {?} */
+    PersonalSettingsComponent.prototype.profile$;
+    /** @type {?} */
+    PersonalSettingsComponent.prototype.form;
+    /**
+     * @type {?}
+     * @private
+     */
+    PersonalSettingsComponent.prototype.fb;
+    /**
+     * @type {?}
+     * @private
+     */
+    PersonalSettingsComponent.prototype.store;
+    /**
+     * @type {?}
+     * @private
+     */
+    PersonalSettingsComponent.prototype.toasterService;
+}
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class TenantBoxComponent {
     /**
@@ -345,7 +583,9 @@ class TenantBoxComponent {
      * @return {?}
      */
     ngOnInit() {
-        this.tenant = this.store.selectSnapshot(SessionState.getTenant) || ((/** @type {?} */ ({})));
+        this.tenant =
+            this.store.selectSnapshot(SessionState.getTenant) ||
+                ((/** @type {?} */ ({})));
         this.tenantName = this.tenant.name || '';
     }
     /**
@@ -380,14 +620,14 @@ class TenantBoxComponent {
                 if (success) {
                     this.tenant = {
                         id: tenantId,
-                        name: this.tenant.name,
+                        name: this.tenant.name
                     };
                     this.tenantName = this.tenant.name;
                     this.isModalVisible = false;
                 }
                 else {
-                    this.toasterService.error(`AbpUiMultiTenancy::GivenTenantIsNotAvailable`, 'AbpUi::Error', {
-                        messageLocalizationParams: [this.tenant.name],
+                    this.toasterService.error('AbpUiMultiTenancy::GivenTenantIsNotAvailable', 'AbpUi::Error', {
+                        messageLocalizationParams: [this.tenant.name]
                     });
                     this.tenant = (/** @type {?} */ ({}));
                 }
@@ -439,7 +679,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @param {?} options
@@ -453,18 +693,27 @@ const ACCOUNT_OPTIONS = new InjectionToken('ACCOUNT_OPTIONS');
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class AccountModule {
 }
 AccountModule.decorators = [
     { type: NgModule, args: [{
-                declarations: [LoginComponent, RegisterComponent, TenantBoxComponent],
+                declarations: [
+                    LoginComponent,
+                    RegisterComponent,
+                    TenantBoxComponent,
+                    ChangePasswordComponent,
+                    ManageProfileComponent,
+                    PersonalSettingsComponent,
+                ],
                 imports: [CoreModule, AccountRoutingModule, ThemeSharedModule, TableModule, NgbDropdownModule, NgxValidateCoreModule],
                 exports: [],
             },] }
 ];
 /**
+ *
+ * @deprecated since version 0.9
  * @param {?=} options
  * @return {?}
  */
@@ -481,14 +730,18 @@ function AccountProviders(options = (/** @type {?} */ ({}))) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-/** @type {?} */
+/**
+ *
+ * @deprecated since version 0.9
+ * @type {?}
+ */
 const ACCOUNT_ROUTES = {
     routes: (/** @type {?} */ ([
         {
@@ -503,12 +756,12 @@ const ACCOUNT_ROUTES = {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -521,7 +774,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -586,7 +839,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -601,18 +854,18 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
-export { ACCOUNT_OPTIONS, ACCOUNT_ROUTES, AccountModule, AccountProviders, LoginComponent, RegisterComponent, optionsFactory, LoginComponent as ɵa, RegisterComponent as ɵc, AccountService as ɵd, TenantBoxComponent as ɵe, AccountRoutingModule as ɵf, optionsFactory as ɵg, ACCOUNT_OPTIONS as ɵh };
+export { ACCOUNT_OPTIONS, ACCOUNT_ROUTES, AccountModule, AccountProviders, ChangePasswordComponent, LoginComponent, ManageProfileComponent, PersonalSettingsComponent, RegisterComponent, optionsFactory, LoginComponent as ɵa, RegisterComponent as ɵc, AccountService as ɵd, TenantBoxComponent as ɵe, ChangePasswordComponent as ɵf, ManageProfileComponent as ɵg, PersonalSettingsComponent as ɵh, AccountRoutingModule as ɵi, optionsFactory as ɵj, ACCOUNT_OPTIONS as ɵk };
 //# sourceMappingURL=abp-ng.account.js.map
